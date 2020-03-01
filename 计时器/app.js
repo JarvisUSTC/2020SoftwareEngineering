@@ -6,7 +6,7 @@ const ENTER = 13;
 const SPACE = 32;
 const RANGE = 59;
 const INTERVAL = 1000;
-function transfer2 (hour, minute, second) {
+function transfer2Show (hour, minute, second) {
 	let str = "";
 	if (hour % TEN === hour)
 		{str += "0" + hour;}
@@ -51,14 +51,27 @@ const StartBefore = {
 	state: 'StartBefore',
 	getTime: function () {
 		const INPUTTIME = document.getElementsByTagName('input');
+		if (INPUTTIME[ZERO].value === "" || INPUTTIME[ONE].value === "" || INPUTTIME[TWO].value === "") {
+			alert("Please input the complete information!");
+			StartBefore.show();
+			return false;
+		}
 		StartBefore.inputHour = parseInt(INPUTTIME[ZERO].value);
 		StartBefore.inputMinute = parseInt(INPUTTIME[ONE].value);
+		if (StartBefore.inputMinute > RANGE) {
+			StartBefore.inputMinute = 59;
+		}
 		StartBefore.inputSecond = parseInt(INPUTTIME[TWO].value);
-		console.log(StartBefore.inputHour);
+		if (StartBefore.inputSecond > RANGE) {
+			StartBefore.inputSecond = 59;
+		}
+		return true;
 	},
 	Countup: function () {
 		document.removeEventListener('keydown', enter);
-		StartBefore.getTime();
+		if (!StartBefore.getTime()) {
+			return;
+		}
 		Counting.state = 'Up';
 		Counting.inputHour = StartBefore.inputHour;
 		Counting.inputMinute = StartBefore.inputMinute;
@@ -73,6 +86,9 @@ const StartBefore = {
 	Countdown: function () {
 		document.removeEventListener('keydown', enter);
 		StartBefore.getTime();
+		if (!StartBefore.getTime()) {
+			return;
+		}
 		Counting.state = 'Down';
 		Counting.inputHour = StartBefore.inputHour;
 		Counting.inputMinute = StartBefore.inputMinute;
@@ -177,7 +193,6 @@ const Counting = {
 		Counting.Show();
 	},
 	bindfunc: function () {
-		console.log(Counting.inputMinute);
 		document.getElementById('pause').onclick = Counting.Pause;
 		document.getElementById('clear').onclick = Counting.ClearCounting;
 		document.getElementById('restart').onclick = Counting.RestartCounting;
@@ -207,14 +222,14 @@ const Counting = {
 		let header = document.getElementsByTagName('header').header;
 		header.parentNode.replaceChild(Counting.domTree, header);
 		header = document.getElementsByTagName('header').header.childNodes;
-		header[ZERO].innerText = Counting.state === "Up" ? "正在正计时 " + transfer2(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) : "正在倒计时 " + transfer2(Counting.inputHour, Counting.inputMinute, Counting.inputSecond);
+		header[ZERO].innerText = Counting.state === "Up" ? "正在正计时 " + transfer2Show(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) : "正在倒计时 " + transfer2Show(Counting.inputHour, Counting.inputMinute, Counting.inputSecond);
 		header[TWO].innerText = Counting.state === "Up" ? "清空正计时" : "清空倒计时";
 		Counting.bindfunc();
 		const timer = document.getElementById('time');
 		let interval = 1000;
 		if (Counting.state === 'Up') {
 			// 正计时
-			timer.innerText = transfer2(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
+			timer.innerText = transfer2Show(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
 			interval = interval - Counting.residualMs; // 间隔设置为ms
 		}
 		else
@@ -229,27 +244,27 @@ const Counting = {
 						Counting.residualMinute = 59;
 						Counting.residualSecond = 59;
 						Counting.residualMs = 999;
-						timer.innerText = transfer2(Counting.residualHour, RANGE, RANGE);
+						timer.innerText = transfer2Show(Counting.residualHour, RANGE, RANGE);
 					}
 					else
 					{
 						Counting.residualMinute -= 1;
 						Counting.residualSecond = 59;
 						Counting.residualMs = 999;
-						timer.innerText = transfer2(Counting.residualHour, Counting.residualMinute, RANGE);
+						timer.innerText = transfer2Show(Counting.residualHour, Counting.residualMinute, RANGE);
 					}
 				}
 				else
 				{
 					Counting.residualSecond -= 1;
 					Counting.residualMs = 999;
-					timer.innerText = transfer2(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
+					timer.innerText = transfer2Show(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
 				}
 			}
 			else
 			{
 				interval = Counting.residualMs + ONE;
-				timer.innerText = transfer2(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
+				timer.innerText = transfer2Show(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
 			}
 		}
 		// while(1)
@@ -321,7 +336,7 @@ function countingInverse (isInverse) {
 		}
 	}
 	const timer = document.getElementById('time');
-	timer.innerText = transfer2(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
+	timer.innerText = transfer2Show(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
 	if (!Counting.checkEnd()) {
 		Counting.setCounter = setTimeout(function () {countingInverse(isInverse);}, INTERVAL);
 	} else {
@@ -388,10 +403,10 @@ const Paused = {
 		header.parentNode.replaceChild(Paused.domTree, header);
 		Paused.bindfunc();
 		header = document.getElementsByTagName('header').header.childNodes;
-		header[ZERO].innerText = Counting.state === "Up" ? "正在正计时 " + transfer2(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) : "正在倒计时 " + transfer2(Counting.inputHour, Counting.inputMinute, Counting.inputSecond);
+		header[ZERO].innerText = Counting.state === "Up" ? "正在正计时 " + transfer2Show(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) : "正在倒计时 " + transfer2Show(Counting.inputHour, Counting.inputMinute, Counting.inputSecond);
 		header[TWO].innerText = Counting.state === "Up" ? "清空正计时" : "清空倒计时";
 		const timer = document.getElementById('time');
-		timer.innerText = transfer2(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
+		timer.innerText = transfer2Show(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
 	}
 };
 
@@ -433,10 +448,10 @@ const Counted = {
 		header.parentNode.replaceChild(Counted.domTree, header);
 		Counted.bindfunc();
 		header = document.getElementsByTagName('header').header.childNodes;
-		header[ZERO].innerText = Counting.state === "Up" ? "正计时 " + transfer2(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) + " 已结束" : "倒计时 " + transfer2(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) + " 已结束";
+		header[ZERO].innerText = Counting.state === "Up" ? "正计时 " + transfer2Show(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) + " 已结束" : "倒计时 " + transfer2Show(Counting.inputHour, Counting.inputMinute, Counting.inputSecond) + " 已结束";
 		header[ONE].innerText = Counting.state === "Up" ? "清空正计时" : "清空倒计时";
 		const timer = document.getElementById('time');
-		timer.innerText = transfer2(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
+		timer.innerText = transfer2Show(Counting.residualHour, Counting.residualMinute, Counting.residualSecond);
 	}
 };
 
